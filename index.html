@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Math Shooter: Misi Pecahan, Desimal, dan Persen</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font-family:'Baloo 2','Trebuchet MS',system-ui,sans-serif;color:#1d1b4b;background:radial-gradient(circle at 20% 10%,#7c5cff 0,#4338ca 45%,#1e3a8a 100%);overflow:hidden;touch-action:manipulation;user-select:none}
+body:before{content:"";position:fixed;inset:0;background:radial-gradient(#fff3 2px,transparent 3px) 0 0/48px 48px;pointer-events:none}
+.page{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px;overflow:auto;text-align:center}
+.page.on{display:flex}
+.card{background:#fff;border-radius:28px;padding:clamp(16px,3vw,32px);max-width:760px;width:100%;box-shadow:0 8px 0 #0003}
+h1{font-size:clamp(26px,5vw,48px);line-height:1.05;color:#4338ca;font-weight:800}
+h2{font-size:clamp(22px,3.6vw,34px);color:#4338ca}
+p,li{font-size:clamp(16px,2.2vw,22px);line-height:1.35}
+.tags{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}
+.tags span{background:#fde047;border-radius:99px;padding:2px 14px;font-weight:700;font-size:clamp(14px,2vw,18px)}
+.tp{background:#ecfdf5;border-radius:16px;padding:10px 14px;margin:8px 0;font-size:clamp(14px,1.9vw,18px)}
+.row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:10px}
+button{font:inherit;font-weight:800;cursor:pointer;border:0;border-radius:18px;padding:12px 26px;font-size:clamp(17px,2.4vw,24px);min-height:52px;color:#fff;background:#7c3aed;box-shadow:0 5px 0 #4c1d95;transition:transform .08s}
+button:active{transform:translateY(4px);box-shadow:0 1px 0 #4c1d95}
+button.g{background:#16a34a;box-shadow:0 5px 0 #166534}
+button.y{background:#facc15;color:#422006;box-shadow:0 5px 0 #a16207}
+button.r{background:#ef4444;box-shadow:0 5px 0 #991b1b}
+button:focus-visible{outline:4px solid #fde047}
+.hero{font-size:clamp(48px,9vw,88px);letter-spacing:6px}
+ol{text-align:left;padding-left:1.4em;display:grid;gap:6px}
+#cammsg{font-size:15px;font-weight:700;color:#be123c;min-height:20px}
+/* game */
+#game{justify-content:flex-start;padding:10px}
+.hud{display:flex;width:100%;max-width:1100px;gap:8px;align-items:center;justify-content:space-between;color:#fff;font-weight:800;font-size:clamp(15px,2.2vw,22px)}
+.hud b{background:#0004;border-radius:99px;padding:2px 14px;white-space:nowrap}
+.hud button{padding:4px 14px;min-height:40px;font-size:18px}
+.bar{width:100%;max-width:1100px;height:12px;background:#0004;border-radius:9px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#facc15,#4ade80);transition:width .4s}
+#qbox{background:#fff;border-radius:24px;padding:10px 24px;max-width:1100px;width:100%;font-size:clamp(24px,4.4vw,46px);font-weight:800;color:#4338ca;box-shadow:0 6px 0 #0003}
+#arena{flex:1;width:100%;max-width:1100px;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));align-content:center;gap:clamp(8px,2vw,24px);padding:4px 4px 120px}
+.target{position:relative;aspect-ratio:1;max-width:230px;width:100%;margin:auto;border-radius:50%;padding:0;color:#1d1b4b;font-size:clamp(22px,4.2vw,44px);display:grid;place-items:center;animation:bob 2.6s ease-in-out infinite;background:radial-gradient(circle,#fff 0 30%,var(--c) 31% 52%,#fff 53% 64%,var(--c) 65% 100%);box-shadow:0 0 24px var(--c),0 6px 0 #0004}
+.target:nth-child(2){animation-delay:-.6s}.target:nth-child(3){animation-delay:-1.2s}.target:nth-child(4){animation-delay:-1.8s}
+.target span{background:#fff;border-radius:99px;padding:0 12px;box-shadow:0 2px 0 #0003}
+.target.ok{animation:pop .5s forwards}.target.bad{animation:shake .4s 2;filter:grayscale(.7)}
+@keyframes bob{50%{transform:translateY(-12px)}}
+@keyframes pop{to{transform:scale(1.6);opacity:0}}
+@keyframes shake{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1;margin:0 3px}
+.fr i{font-style:normal;padding:0 4px}.fr i:first-child{border-bottom:.09em solid currentColor}
+#hero{position:fixed;left:10px;bottom:6px;font-size:clamp(54px,10vw,100px);pointer-events:none;filter:drop-shadow(0 4px 0 #0004)}
+#cam{position:fixed;right:10px;bottom:10px;width:clamp(110px,16vw,190px);border-radius:16px;border:4px solid #fde047;background:#000;transform:scaleX(-1);display:none;pointer-events:none;z-index:5}
+#cstat{position:fixed;right:10px;bottom:calc(10px + clamp(82px,12vw,142px));background:#000b;color:#fff;font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;display:none;z-index:6}
+#cur{position:fixed;width:46px;height:46px;margin:-23px 0 0 -23px;border:4px solid #ef4444;border-radius:50%;pointer-events:none;display:none;z-index:50;box-shadow:0 0 12px #fff}
+#cur:before,#cur:after{content:"";position:absolute;background:#ef4444}
+#cur:before{left:50%;top:-8px;bottom:-8px;width:4px;margin-left:-2px}#cur:after{top:50%;left:-8px;right:-8px;height:4px;margin-top:-2px}
+#cur.p{background:#facc1588}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:40}
+#fx line{stroke:#22d3ee;stroke-width:8;stroke-linecap:round;animation:lz .3s forwards;filter:drop-shadow(0 0 6px #22d3ee)}
+@keyframes lz{to{opacity:0;stroke-width:1}}
+.st{position:fixed;font-size:30px;pointer-events:none;z-index:45;animation:fly .9s forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(360deg);opacity:0}}
+.ov{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:16px;z-index:30}
+.ov.on{display:flex}
+.ov .card{text-align:center}
+#fbT{font-size:clamp(30px,5vw,48px);font-weight:800}
+.good{color:#16a34a}.no{color:#dc2626}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:12px 0}
+.stats div{background:#eef2ff;border-radius:16px;padding:8px}
+.stats b{display:block;font-size:clamp(26px,4vw,40px);color:#4338ca}
+@media (max-height:520px){#hero{display:none}#arena{padding-bottom:70px}}
+@media (prefers-reduced-motion:reduce){.target{animation:none}}
+</style>
+</head>
+<body>
+
+<section id="home" class="page on">
+  <div class="hero">🧑‍🚀🎯</div>
+  <div class="card">
+    <h1>Math Shooter: Misi Pecahan, Desimal, dan Persen</h1>
+    <div class="tags"><span>Matematika</span><span>Pecahan, Desimal, dan Persen</span><span>Kelas IV SD / Fase B</span></div>
+    <div class="tp"><b>Tujuan Pembelajaran:</b> Menentukan bentuk desimal dan persen dari pecahan persepuluh dan perseratus, serta menentukan bentuk pecahan persepuluh atau perseratus dari desimal dan persen.</div>
+    <div class="row">
+      <button class="y" id="btnCam">📷 AKTIFKAN KAMERA</button>
+      <button class="g" id="btnStart">🚀 MULAI PERMAINAN</button>
+    </div>
+    <p id="cammsg"></p>
+  </div>
+</section>
+
+<section id="how" class="page">
+  <div class="card">
+    <h2>Cara Bermain</h2>
+    <ol>
+      <li>☝️ Arahkan <b>telunjuk</b> ke target jawaban.</li>
+      <li>🤏 Satukan ujung <b>ibu jari dan telunjuk</b> untuk menembak.</li>
+      <li>🎯 Tembak satu target yang berisi jawaban benar.</li>
+      <li>⭐ Kumpulkan poin sebanyak-banyaknya.</li>
+      <li>❤️ Hindari target yang salah. Nyawamu hanya 3.</li>
+      <li>🏁 Selesaikan 15 soal untuk menuntaskan misi.</li>
+    </ol>
+    <p style="margin-top:10px;font-size:16px">Tanpa kamera? Klik atau sentuh target langsung untuk menembak.</p>
+    <div class="row"><button class="y" id="btnCam2">📷 KAMERA</button><button class="g" id="btnPlay">▶ MAIN SEKARANG</button></div>
+  </div>
+</section>
+
+<section id="game" class="page">
+  <div class="hud">
+    <b id="hScore">⭐ 0</b><b id="hLives">❤️❤️❤️</b><b id="hProg">1/15</b>
+    <button class="y" id="btnPause" aria-label="Jeda">⏸</button>
+  </div>
+  <div class="bar"><i id="bar"></i></div>
+  <div id="qbox"></div>
+  <div id="arena"></div>
+  <div id="hero">🧑‍🚀</div>
+</section>
+
+<section id="result" class="page">
+  <div class="card">
+    <div class="hero" id="rEmoji">🏆</div>
+    <h2 id="rTitle">Hasil Misi</h2>
+    <div class="stats">
+      <div><b id="rScore">0</b>Skor akhir</div>
+      <div><b id="rRight">0</b>Jawaban benar</div>
+      <div><b id="rWrong">0</b>Jawaban salah</div>
+      <div><b id="rDone">0/15</b>Soal diselesaikan</div>
+      <div><b id="rPct">0%</b>Ketepatan</div>
+    </div>
+    <p id="rMsg"></p>
+    <div class="row"><button class="g" id="btnAgain">🔁 MAIN LAGI</button><button class="y" id="btnHome1">🏠 KEMBALI KE BERANDA</button></div>
+  </div>
+</section>
+
+<div id="fb" class="ov"><div class="card">
+  <div id="fbT"></div><p id="fbE" style="margin:8px 0"></p>
+  <div class="row"><button class="g" id="btnNext">LANJUT ▶</button></div>
+</div></div>
+
+<div id="pause" class="ov"><div class="card">
+  <h2>⏸ Permainan Dijeda</h2>
+  <div class="row"><button class="g" id="btnResume">▶ LANJUT</button><button class="y" id="btnRestart">🔁 ULANGI</button><button class="r" id="btnHome2">🏠 BERANDA</button></div>
+</div></div>
+
+<video id="cam" playsinline muted></video>
+<div id="cstat">Kamera mati</div>
+<div id="cur"></div>
+<svg id="fx"></svg>
+
+<script type="module">
+/* ============ DATA SOAL (15 soal, kunci jawaban = a) ============ */
+const Q=[
+ {q:'3/10 = … dalam bentuk desimal.',a:'0,3',w:['0,03','3,0','0,13'],e:'Pecahan persepuluh ditulis 1 angka di belakang koma. 3/10 = 0,3.'},
+ {q:'7/10 = … %',a:'70%',w:['7%','17%','0,7%'],e:'7/10 = 70/100 (kalikan atas dan bawah dengan 10). Perseratus sama dengan persen, jadi 70%.'},
+ {q:'25/100 = … dalam bentuk desimal.',a:'0,25',w:['2,5','0,025','25,0'],e:'Pecahan perseratus ditulis 2 angka di belakang koma. 25/100 = 0,25.'},
+ {q:'45/100 = … %',a:'45%',w:['4,5%','0,45%','54%'],e:'Persen artinya per seratus. 45/100 = 45%.'},
+ {q:'0,7 = … dalam bentuk pecahan.',a:'7/10',w:['7/100','1/7','70/10'],e:'Satu angka di belakang koma berarti persepuluh. 0,7 = 7/10.'},
+ {q:'0,35 = … dalam bentuk pecahan.',a:'35/100',w:['35/10','53/100','3/100'],e:'Dua angka di belakang koma berarti perseratus. 0,35 = 35/100.'},
+ {q:'40% = … dalam bentuk pecahan persepuluh.',a:'4/10',w:['4/100','40/10','14/10'],e:'40% = 40/100. Bagi atas dan bawah dengan 10, hasilnya 4/10.'},
+ {q:'65% = … dalam bentuk pecahan perseratus.',a:'65/100',w:['65/10','56/100','6/100'],e:'Persen berarti per seratus. 65% = 65/100.'},
+ {q:'Bentuk yang setara dengan 3/10 adalah ….',a:'0,3 dan 30%',w:['0,03 dan 3%','0,3 dan 3%','3,0 dan 30%'],e:'3/10 = 0,3. Lalu 3/10 = 30/100 = 30%.'},
+ {q:'Bentuk yang setara dengan 25/100 adalah ….',a:'0,25 dan 25%',w:['2,5 dan 25%','0,25 dan 2,5%','0,025 dan 25%'],e:'25/100 = 0,25 dan 25/100 = 25%.'},
+ {q:'9/10 = … dalam bentuk desimal.',a:'0,9',w:['0,09','9,0','0,19'],e:'9/10 dibaca sembilan persepuluh, ditulis 0,9.'},
+ {q:'0,08 = … dalam bentuk pecahan perseratus.',a:'8/100',w:['8/10','80/100','1/8'],e:'Dua angka di belakang koma: 0,08 = 8/100.'},
+ {q:'90% = … dalam bentuk pecahan persepuluh.',a:'9/10',w:['9/100','90/10','19/10'],e:'90% = 90/100. Bagi atas dan bawah dengan 10, hasilnya 9/10.'},
+ {q:'6/100 = … %',a:'6%',w:['60%','0,6%','600%'],e:'Per seratus berarti persen. 6/100 = 6%.'},
+ {q:'Bentuk yang setara dengan 0,5 adalah ….',a:'5/10 dan 50%',w:['5/100 dan 5%','5/10 dan 5%','50/10 dan 50%'],e:'0,5 = 5/10 = 50/100 = 50%.'}
+];
+const COLORS=['#38bdf8','#a78bfa','#4ade80','#facc15'];
+const $=s=>document.querySelector(s);
+const fr=t=>t.replace(/(\d+)\/(\d+)/g,'<span class="fr"><i>$1</i><i>$2</i></span>');
+let S={i:0,score:0,lives:3,right:0,wrong:0,locked:true,paused:false,opts:[]};
+
+/* ============ SUARA (Web Audio) ============ */
+let AC;
+function tone(f,d,type='sine',delay=0,vol=.15){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime+delay,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
+const sfx={shoot:()=>{tone(900,.15,'square');tone(400,.15,'square',.05)},ok:()=>[523,659,784,1047].forEach((f,k)=>tone(f,.18,'triangle',k*.09)),bad:()=>{tone(220,.25,'sawtooth');tone(150,.35,'sawtooth',.15)},win:()=>[523,659,784,659,784,1047,1319].forEach((f,k)=>tone(f,.22,'triangle',k*.12)),lose:()=>[392,330,262].forEach((f,k)=>tone(f,.3,'sawtooth',k*.2,.1))};
+
+/* ============ NAVIGASI ============ */
+function show(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id===id))}
+function goHome(){stopCam();closeOv();S.locked=true;show('home')}
+function closeOv(){$('#fb').classList.remove('on');$('#pause').classList.remove('on');S.paused=false}
+
+/* ============ ALUR PERMAINAN ============ */
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function newGame(){closeOv();S={i:0,score:0,lives:3,right:0,wrong:0,locked:true,paused:false,opts:[]};show('game');showQ()}
+function hud(){$('#hScore').textContent='⭐ '+S.score;$('#hLives').textContent='❤️'.repeat(S.lives)+'🖤'.repeat(3-S.lives);$('#hProg').textContent=(S.i+1)+'/15';$('#bar').style.width=(S.i/15*100)+'%'}
+function showQ(){
+  const q=Q[S.i];hud();
+  $('#qbox').innerHTML=fr(q.q);
+  S.opts=shuffle([{t:q.a,ok:true},...q.w.map(t=>({t,ok:false}))]);
+  $('#arena').innerHTML=S.opts.map((o,k)=>`<button class="target" data-k="${k}" style="--c:${COLORS[k]}" aria-label="Jawaban ${o.t}"><span>${fr(o.t)}</span></button>`).join('');
+  S.locked=false;
+}
+function answer(k){
+  if(S.locked||S.paused)return;
+  S.locked=true;                       // kunci: skor tidak bisa bertambah dua kali
+  const o=S.opts[k],el=$('#arena').children[k],r=el.getBoundingClientRect();
+  const q=Q[S.i];
+  if(o.ok){S.right++;S.score+=100;el.classList.add('ok');sfx.ok();burst(r.left+r.width/2,r.top+r.height/2,['⭐','🪙','✨'])}
+  else{S.wrong++;S.lives--;el.classList.add('bad');sfx.bad();burst(r.left+r.width/2,r.top+r.height/2,['💥'])}
+  hud();
+  setTimeout(()=>{
+    const last=S.lives===0||S.i===Q.length-1;
+    $('#fbT').innerHTML=o.ok?'<span class="good">✅ Benar! +100</span>':'<span class="no">❌ Belum tepat</span>';
+    $('#fbE').innerHTML=(o.ok?'':'Jawaban benar: <b>'+fr(q.a)+'</b><br>')+fr(q.e);
+    $('#btnNext').textContent=last?'LIHAT HASIL 🏆':'LANJUT ▶';
+    $('#fb').classList.add('on');
+  },700);
+}
+function next(){
+  if(!$('#fb').classList.contains('on'))return;
+  $('#fb').classList.remove('on');
+  if(S.lives===0||S.i===Q.length-1)return finish();
+  S.i++;showQ();
+}
+function finish(){
+  const done=S.right+S.wrong,pct=done?Math.round(S.right/done*100):0,win=S.lives>0&&S.right>=12;
+  $('#rScore').textContent=S.score;$('#rRight').textContent=S.right;$('#rWrong').textContent=S.wrong;
+  $('#rDone').textContent=done+'/15';$('#rPct').textContent=pct+'%';
+  $('#rEmoji').textContent=S.lives===0?'😅':pct>=80?'🏆':pct>=60?'🌟':'💪';
+  $('#rTitle').textContent=S.lives===0?'Nyawa habis, ayo coba lagi!':done===15?'Misi selesai!':'Hasil Misi';
+  $('#rMsg').textContent=S.lives===0?'Jangan menyerah! Baca pembahasan dengan teliti, lalu bidik lagi.':pct>=80?'Hebat sekali! Kamu jago mengubah pecahan, desimal, dan persen!':pct>=60?'Bagus! Sedikit lagi kamu bisa mencapai nilai tertinggi.':'Terus berlatih ya, kamu pasti bisa lebih baik!';
+  (S.lives===0?sfx.lose:sfx.win)();show('result');
+}
+
+/* ============ TEMBAKAN & EFEK ============ */
+function laser(x,y){
+  const svg=$('#fx'),l=document.createElementNS('http://www.w3.org/2000/svg','line');
+  l.setAttribute('x1',innerWidth*.12);l.setAttribute('y1',innerHeight-50);l.setAttribute('x2',x);l.setAttribute('y2',y);
+  svg.appendChild(l);setTimeout(()=>l.remove(),320);
+}
+function burst(x,y,em){for(let k=0;k<12;k++){const s=document.createElement('span');s.className='st';s.textContent=em[k%em.length];s.style.left=x+'px';s.style.top=y+'px';const a=Math.random()*6.28,d=60+Math.random()*100;s.style.setProperty('--dx',Math.cos(a)*d+'px');s.style.setProperty('--dy',Math.sin(a)*d+'px');document.body.appendChild(s);setTimeout(()=>s.remove(),900)}}
+function fire(x,y,fromHand){
+  if(S.paused&&!fromHand)return;
+  sfx.shoot();laser(x,y);
+  const el=document.elementFromPoint(x,y);if(!el)return;
+  const t=el.closest('.target');
+  if(t&&$('#game').classList.contains('on')){if(!$('#fb').classList.contains('on')&&!S.paused)answer(+t.dataset.k);return}
+  if(fromHand){const b=el.closest('button');if(b)b.click()}
+}
+// Mouse / layar sentuh (cadangan jika kamera tidak tersedia)
+document.addEventListener('pointerdown',e=>{if(e.target.closest('.target')){fire(e.clientX,e.clientY,false)}});
+
+/* ============ KAMERA + HAND TRACKING ============ */
+const video=$('#cam'),cur=$('#cur'),cstat=$('#cstat');
+let stream=null,landmarker=null,raf=0,camOn=false,pinched=false,lastShot=0,hist=[],pos=null,lastT=-1;
+const setMsg=t=>{$('#cammsg').textContent=t};
+function setStat(t){cstat.textContent=t}
+function updCamBtns(){['#btnCam','#btnCam2'].forEach(s=>$(s).textContent=camOn?'📷 MATIKAN KAMERA':(s==='#btnCam'?'📷 AKTIFKAN KAMERA':'📷 KAMERA'))}
+async function startCam(){
+  if(camOn)return;
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){setMsg('Kamera tidak tersedia di perangkat/peramban ini. Gunakan HTTPS atau localhost. Kamu tetap bisa main dengan mouse atau sentuhan.');return}
+  try{
+    setMsg('Meminta izin kamera…');
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480},audio:false});
+  }catch(err){
+    setMsg(err&&err.name==='NotAllowedError'?'Izin kamera ditolak. Kamu tetap bisa main dengan mouse atau sentuhan.':'Kamera tidak ditemukan atau sedang dipakai aplikasi lain. Gunakan mouse atau sentuhan.');return;
+  }
+  video.srcObject=stream;await video.play().catch(()=>{});
+  camOn=true;video.style.display='block';cstat.style.display='block';updCamBtns();
+  setStat('Memuat pelacak tangan…');setMsg('Kamera aktif. Memuat pelacak tangan…');
+  try{
+    if(!landmarker){
+      const V='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+      const m=await import(V+'/vision_bundle.mjs');
+      const files=await m.FilesetResolver.forVisionTasks(V+'/wasm');
+      landmarker=await m.HandLandmarker.createFromOptions(files,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',delegate:'GPU'},runningMode:'VIDEO',numHands:1});
+    }
+    setMsg('Kamera aktif. Angkat tanganmu ke depan kamera.');loop();
+  }catch(err){
+    console.error(err);setStat('Pelacak gagal dimuat');setMsg('Pelacak tangan gagal dimuat (cek koneksi internet). Gunakan mouse atau sentuhan.');
+  }
+}
+function stopCam(){
+  camOn=false;cancelAnimationFrame(raf);
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+  video.srcObject=null;video.style.display='none';cstat.style.display='none';cur.style.display='none';
+  pinched=false;hist=[];pos=null;updCamBtns();setMsg('');
+}
+function loop(){
+  if(!camOn)return;
+  if(landmarker&&video.readyState>=2&&video.currentTime!==lastT){
+    lastT=video.currentTime;
+    let r;try{r=landmarker.detectForVideo(video,performance.now())}catch(e){r=null}
+    handle(r&&r.landmarks&&r.landmarks[0]);
+  }
+  raf=requestAnimationFrame(loop);
+}
+function handle(lm){
+  if(!lm){cur.style.display='none';setStat('✋ Tangan tidak terdeteksi');pinched=false;hist=[];return}
+  const W=video.videoWidth||640,H=video.videoHeight||480;
+  const d=(a,b)=>Math.hypot((a.x-b.x)*W,(a.y-b.y)*H);
+  const tip=lm[8];
+  // koordinat kamera (dicerminkan) -> koordinat layar
+  const tx=(1-tip.x)*innerWidth,ty=tip.y*innerHeight;
+  pos=pos?{x:pos.x+(tx-pos.x)*.45,y:pos.y+(ty-pos.y)*.45}:{x:tx,y:ty};
+  const ratio=d(lm[4],lm[8])/(d(lm[0],lm[9])||1);   // jarak ibu jari–telunjuk relatif ukuran tangan
+  hist.push({...pos});if(hist.length>6)hist.shift();
+  cur.style.display='block';
+  let aim=pos;
+  if(pinched||ratio<.3)aim=hist[0];                 // pakai posisi sebelum mencubit agar bidikan tidak bergeser
+  cur.style.left=aim.x+'px';cur.style.top=aim.y+'px';
+  if(!pinched&&ratio<.3){                            // transisi terbuka -> mencubit = satu tembakan
+    pinched=true;cur.classList.add('p');
+    const now=performance.now();
+    if(now-lastShot>700){lastShot=now;fire(aim.x,aim.y,true)}
+  }else if(pinched&&ratio>.5){pinched=false;cur.classList.remove('p')}
+  setStat(pinched?'🤏 Menembak!':'☝️ Tangan terdeteksi');
+}
+const toggleCam=()=>camOn?stopCam():startCam();
+
+/* ============ TOMBOL ============ */
+$('#btnCam').onclick=toggleCam;$('#btnCam2').onclick=toggleCam;
+$('#btnStart').onclick=()=>{try{AC=AC||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}show('how')};
+$('#btnPlay').onclick=newGame;
+$('#btnNext').onclick=next;
+$('#btnPause').onclick=()=>{if(S.locked&&$('#fb').classList.contains('on'))return;S.paused=true;$('#pause').classList.add('on')};
+$('#btnResume').onclick=()=>{S.paused=false;$('#pause').classList.remove('on')};
+$('#btnRestart').onclick=newGame;$('#btnAgain').onclick=newGame;
+$('#btnHome1').onclick=goHome;$('#btnHome2').onclick=goHome;
+addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#game').classList.contains('on'))$('#btnPause').click()});
+addEventListener('pagehide',stopCam);
+</script>
+</body>
+</html>
